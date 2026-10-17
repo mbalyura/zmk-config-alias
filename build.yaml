@@ -1,0 +1,9 @@
+include:
+  - board: nice_nano_v2
+    shield: alias
+    artifact-name: alias
+
+  # Settings Reset
+  - board: nice_nano_v2
+    shield: settings_reset
+    artifact-name: settings-reset

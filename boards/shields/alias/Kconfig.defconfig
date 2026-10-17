@@ -1,0 +1,15 @@
+if SHIELD_ALIAS
+
+config ZMK_KEYBOARD_NAME
+    default "Alias"
+
+config ZMK_USB
+    default y
+
+config ZMK_BLE
+    default y
+
+config ZMK_STUDIO
+    default n
+
+endif

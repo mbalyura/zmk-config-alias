@@ -1,0 +1,191 @@
+#include <behaviors.dtsi>
+#include <dt-bindings/zmk/bt.h>
+#include <dt-bindings/zmk/keys.h>
+#include <dt-bindings/zmk/outputs.h>
+
+//  0  1  2  3  4         5  6  7  8  9
+// 10 11 12 13 14        15 16 17 18 19
+// 20 21 22 23 24        25 26 27 28 29
+//       30 31 32         33 34 35
+#define LEFT_KEYS 0 1 2 3 4 10 11 12 13 14 20 21 22 23 24
+#define LEFT_THUMBS 30 31 32
+#define RIGHT_KEYS 5 6 7 8 9 15 16 17 18 19 25 26 27 28 29
+#define RIGHT_THUMBS 33 34 35
+
+#define DEF 0
+#define NAV 1
+#define SYM 2
+#define NUM 3
+#define GAM 4
+#define SYS 5
+#define SWP 6
+
+#define AS(keycode) &as LS(keycode) keycode     // Autoshift Macro
+
+// Home Row Mods
+#define HRM_BASE \
+    compatible = "zmk,behavior-hold-tap"; \
+    #binding-cells = <2>; \
+    bindings = <&kp>, <&kp>; \
+    tapping-term-ms = <280>; /* how long a key must be pressed to trigger the hold behavior */ \
+    quick-tap-ms = <175>;    /* tapping the key again within this period always triggers the tap behavior */ \
+    hold-trigger-on-release; /* delay the positional decision until release, so held mods can be combined */
+
+#include "combos.dtsi"
+
+/ {
+    conditional_layers {
+        compatible = "zmk,conditional-layers";
+
+        sys_layer {
+            if-layers = <NAV NUM>;
+            then-layer = <SYS>;
+        };
+    };
+};
+
+/ {
+    behaviors {
+        // add shift when held
+        as: auto_shift {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            tapping-term-ms = <250>;
+            quick-tap-ms = <0>;
+            flavor = "tap-preferred";
+            bindings = <&kp>, <&kp>;
+        };
+
+        // home row mods
+        hml: home_row_mod_left {
+            HRM_BASE
+            label = "HRM Left";
+            flavor = "balanced"; // trigger the hold when the tapping-term-ms has expired or another key is pressed and released while the hold-tap is held.
+            require-prior-idle-ms = <175>; // immediately resolves a HRM as "tap" when it is pressed shortly after another key has been tapped. (10500/x where x is relaxed WPM)
+            hold-trigger-key-positions = <RIGHT_KEYS RIGHT_THUMBS>; // keys on the opposite (right) side
+        };
+        hmr: home_row_mod_right {
+            HRM_BASE
+            label = "HRM Right";
+            flavor = "balanced";
+            require-prior-idle-ms = <175>;
+            hold-trigger-key-positions = <LEFT_KEYS LEFT_THUMBS>; // keys on the opposite (left) side
+        };
+        hml_s: home_row_mod_left_shift {
+            HRM_BASE
+            label = "HRM Left";
+            flavor = "hold-preferred"; // triggers the hold when the tapping-term-ms has expired or another key is pressed.
+            hold-trigger-key-positions = <RIGHT_KEYS RIGHT_THUMBS>; // keys on the opposite (right) side
+        };
+        hmr_s: home_row_mod_right_shift {
+            HRM_BASE
+            label = "HRM Right";
+            flavor = "hold-preferred";
+            hold-trigger-key-positions = <LEFT_KEYS LEFT_THUMBS>; // keys on the opposite (left) side
+        };
+
+		// one hand alt-tab / ctrl-tab
+		tabber: tabber {
+			compatible = "zmk,behavior-tri-state";
+			label = "TABBER";
+			#binding-cells = <0>;
+			bindings = <&kt LCTRL>, <&kp TAB>, <&kt LCTRL>;
+			ignored-key-positions = <2>; // shift-tab
+		};
+		switcher: switcher {
+			compatible = "zmk,behavior-tri-state";
+			label = "SWITCHER";
+			#binding-cells = <0>;
+			bindings = <&kt LALT>, <&kp GRAVE>, <&kt LALT>;
+			ignored-key-positions = <12>; // shift-grave
+		};
+		swapper: swapper {
+			compatible = "zmk,behavior-tri-state";
+			label = "SWAPPER";
+			#binding-cells = <0>;
+			bindings = <&kt LALT>, <&kp TAB>, <&kt LALT>;
+			ignored-key-positions = <22>; // shift-tab
+		};
+    };
+
+    keymap {
+        compatible = "zmk,keymap";
+
+        default_layer {  //0
+			label = "DEF";
+            bindings = <
+&kp Q          &kp W        &kp F            &kp P              &kp G             /* | */        &kp J          &kp L              &kp U            &kp Y             &kp SEMI
+&hml LGUI A    &hml LALT R  &hml LCTRL S     &hml_s LSHIFT T    &kp D             /* | */        &kp H          &hmr_s LSHIFT N    &hmr LCTRL E     &hmr LALT I       &hmr LGUI O
+&lt SWP Z      &kp X        &kp C            &kp V              &kp B             /* | */        &kp K          &kp M              &kp COMMA        &kp DOT           &kp SLASH
+                            /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+                            &mt RALT BSPC    &lt NAV ESC        &kp SPACE                        &lt NUM TAB    &lt SYM ENTER       &kp DEL
+            >;
+        };
+
+        navigation_layer {  //1
+			label = "NAV";
+            bindings = <
+&kp LC(Q)     &kp LC(W)     &kp LC(F)        &kp LC(P)          &kp LC(G)          /* | */        &kp PG_UP      &kp HOME           &kp UP          &kp END            &kp LC(SEMI)
+&kp LGUI      &sk LALT      &sk LCTRL        &sk LSHIFT         &kp LC(D)          /* | */        &kp PG_DN      &kp LEFT           &kp DOWN        &kp RIGHT          &kp LC(O)
+&kp LC(Z)     &kp LC(X)     AS(LC(C))        AS(LC(V))          &kp LC(B)          /* | */        &kp LS(LC(K))  &kt LC(M)          &kp K_CONTEXT_MENU &kp LC(PERIOD)  &kp LC(SLASH)
+                            /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+                            &trans           &trans             &trans                            &trans         &trans             &trans
+            >;
+        };
+
+        symbols_layer {  //2
+			label = "SYM";
+            bindings = <
+&kp EXCL      &kp AT        &kp HASH         &kp DOLLAR         &kp PERCENT        /* | */        &kp CARET      &kp AMPERSAND      &kp STAR          &kp LPAR          &kp RPAR
+&kp EQUAL     &kp PLUS      &kp MINUS        &kp UNDER          &kp LBKT           /* | */        &kp RBKT       &sk LSHIFT         &sk LCTRL         &sk LALT          &kp SQT
+&kp PIPE      &kp GRAVE     &kp SEMI         &kp LPAR           &kp LBRC           /* | */        &kp RBRC       &kp RPAR           &kp LS(SEMI)      &kp TILDE         &kp BACKSLASH
+                            /* - - - - - - - - - - - - - - -  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+                            &trans           &trans             &trans                            &trans         &trans             &trans
+            >;
+        };
+
+        numbers-fn_layer {  //3
+			label = "NUM";
+            bindings = <
+&kp F1        &kp F2        &kp F3           &kp F4             &kp F22            /* | */        &kp MINUS      &kp N7             &kp N8            &kp N9            &kp STAR
+&kp F5        &kp F6        &kp F7           &kp F8             &kp F23            /* | */        &kp PLUS       &kp N4             &kp N5            &kp N6            &kp N0
+&kp F9        &kp F10       &kp F11          &kp F12            &kp F24            /* | */        &kp EQUAL      &kp N1             &kp N2            &kp N3            &kp SLASH
+                            /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+                            &trans           &trans             &trans                            &trans         &trans             &trans
+            >;
+        };
+
+        gaming_layer {  //4
+            label = "GAM";
+			bindings = <
+&kp TAB       &kp Q         &kp W            &kp E              &kp R              /* | */        &none          &none               &kp UP           &none             &kp TAB
+&kp LSFT      &kp A         &kp S            &kp D              &kp F              /* | */        &none          &kp LEFT            &kp DOWN         &kp RIGHT         &kp RSFT
+&kp LCTRL     &kp Z         &kp X            &kp C              &kp V              /* | */        &none          &none               &none            &none             &kp RCTRL
+                            /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+                            &trans           &kp ESC            &kp SPACE                         &kp SPACE      &kp ENTER           &trans
+			>;
+		};
+
+        system-media_layer {  //5
+			label = "SYS";
+            bindings = <
+&bt BT_SEL 0  &bt BT_SEL 1   &bt BT_SEL 2    &none              &none              /* | */        &kp K_VOL_UP    &none             &kp F20 /* mic */  &none            &none
+&bt BT_CLR    &bt BT_CLR_ALL &none           &none              &none              /* | */        &kp K_MUTE      &kp K_PREV        &kp K_PLAY_PAUSE   &kp K_NEXT       &none
+&sys_reset    &bootloader    &soft_off       &out OUT_USB       &out OUT_BLE       /* | */        &kp K_VOL_DN    &none             &none              &bootloader      &sys_reset
+                            /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+                            &none            &none              &none                             &none           &none             &none
+            >;
+        };
+
+        swapper_layer {  //6
+            label = "SWP";
+			bindings = <
+&none         &none         &kp LS(GRAVE)    &switcher         &none              /* | */        &none            &none          	&none  			      &none             &none
+&none         &none         &kp LS(TAB)      &tabber           &none              /* | */        &none            &none          	&none  			      &none             &none
+&none         &none         &kp LS(TAB)      &swapper          &none              /* | */        &none            &none          	&none  			      &none             &none
+                            /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+                            &none            &none             &none                             &none            &none             &none
+			>;
+		};
+    };
+};

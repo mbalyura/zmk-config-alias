@@ -1,0 +1,10 @@
+#include <dt-bindings/zmk/matrix_transform.h>
+#include "alias-transform.dtsi"
+#include "alias-kscan.dtsi"
+
+/ {
+	chosen {
+		zmk,kscan = &kscan0;
+		zmk,matrix-transform = &default_transform;
+	};
+};

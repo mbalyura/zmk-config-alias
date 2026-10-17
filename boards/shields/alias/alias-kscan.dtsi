@@ -1,0 +1,32 @@
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+    kscan0: kscan {
+        compatible = "zmk,kscan-gpio-matrix";
+        wakeup-source;
+        diode-direction = "col2row";
+
+        // R0-R3: left top, home, bottom, thumbs.
+        // R4-R7: right top, home, bottom, thumbs.
+        row-gpios
+            = <&pro_micro 21 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // R0
+            , <&pro_micro 20 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // R1
+            , <&pro_micro 19 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // R2
+            , <&pro_micro 18 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // R3
+            , <&pro_micro 15 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // R4
+            , <&pro_micro 14 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // R5
+            , <&pro_micro 16 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // R6
+            , <&pro_micro 10 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // R7
+            ;
+
+        // C0-C4: pinky to inner column, shared by both sides.
+        // Thumb clusters use C2-C4.
+        col-gpios
+            = <&pro_micro 2 GPIO_ACTIVE_HIGH> // C0
+            , <&pro_micro 3 GPIO_ACTIVE_HIGH> // C1
+            , <&pro_micro 4 GPIO_ACTIVE_HIGH> // C2
+            , <&pro_micro 5 GPIO_ACTIVE_HIGH> // C3
+            , <&pro_micro 6 GPIO_ACTIVE_HIGH> // C4
+            ;
+    };
+};
